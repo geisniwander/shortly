@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import userRouter from "./routes/users.routes";
 
 
 const server = express();
@@ -7,7 +8,7 @@ const server = express();
 server.use(express.json());
 server.use(cors());
 
-server.use([]);
+server.use([userRouter]);
 
 server.listen(5000, () => {
   console.log("Server running on port 5000");

@@ -24,7 +24,7 @@ export async function signUp(req, res) {
 }
 
 export async function signIn(req, res) {
-  const { email, password } = req.body;
+  const { email, password } = res.locals.user;
 
   try {
     const userExists = await await db.query(
