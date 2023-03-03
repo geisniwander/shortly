@@ -1,22 +1,25 @@
 import { nanoid } from "nanoid";
-import { db } from "../config/database.js";
+import {
+  DeleteUrlByIdRepository,
+  getUrlByIdRepository,
+  postUrlRepository,
+  UrlExistsRepository,
+} from "../repositories/urls.repository.js";
 
 export async function postUrl(req, res) {
   const { url, userId } = res.locals.originalUrl;
-
+  const urlString = url.url;
   const shortUrl = nanoid(7);
 
   try {
-    const result = await db.query(
-      `INSERT INTO urls (url, "shortUrl", "visitCount", "userId") VALUES ($1, $2, $3, $4) RETURNING id`,
-      [url.url, shortUrl, 0, userId]
-    );
+
+    const result = await postUrlRepository(urlString, shortUrl, userId);
 
     const urlId = result.rows[0].id;
 
-    res.status(201).send({ id: urlId, shortUrl });
+    return res.status(201).send({ id: urlId, shortUrl });
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send(error.message);
   }
 }
 
@@ -24,21 +27,13 @@ export async function getUrlById(req, res) {
   const { id } = req.params;
 
   try {
-    const result = await db.query(
-      `SELECT json_build_object(
-        'id', urls.id,
-        'shortUrl', urls."shortUrl",
-        'url', urls.url
-      )
-      FROM urls WHERE id = $1`,
-      [id]
-    );
+    const result = await getUrlByIdRepository(id);
 
     if (result.rowCount === 0) return res.sendStatus(404);
 
-    res.status(200).send(result.rows[0].json_build_object);
+    return res.status(200).send(result.rows[0].json_build_object);
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send(error.message);
   }
 }
 
@@ -46,23 +41,17 @@ export async function openUrl(req, res) {
   const { shortUrl } = req.params;
 
   try {
-    const urlExists = await db.query(
-      `SELECT * FROM urls WHERE "shortUrl" = $1`,
-      [shortUrl]
-    );
+    const urlExists = await UrlExistsRepository(shortUrl);
 
     if (urlExists.rowCount === 0) return res.sendStatus(404);
 
-    await db.query(
-      `UPDATE urls SET "visitCount" = "visitCount" + 1 WHERE "shortUrl" = $1`,
-      [shortUrl]
-    );
+    await openUrl(shortUrl);
 
     const originalUrl = urlExists.rows[0].url;
 
-    res.redirect(originalUrl);
+    return res.redirect(originalUrl);
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send(error.message);
   }
 }
 
@@ -72,19 +61,16 @@ export async function deleteUrlById(req, res) {
   const { id } = req.params;
 
   try {
-    const urlExists = await db.query(`SELECT * FROM urls WHERE id = $1`, [id]);
+    const urlExists = await UrlExistsRepository(id);
 
     if (urlExists.rowCount === 0) return res.sendStatus(404);
 
-    const result = await db.query(
-      `DELETE FROM urls WHERE id = $1 AND "userId" = $2`,
-      [id, userId]
-    );
+    const result = await DeleteUrlByIdRepository(id, userId);
 
     if (result.rowCount === 0) return res.sendStatus(401);
 
-    res.status(204).send("Url excluída com sucesso!");
+    return res.status(204).send("Url excluída com sucesso!");
   } catch (error) {
-    res.status(500).send(error.message);
+    return res.status(500).send(error.message);
   }
 }
