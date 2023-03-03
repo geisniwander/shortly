@@ -1,4 +1,4 @@
-import { db } from "../configs/database.js";
+import { db } from "../config/database.js";
 import { urlSchema } from "../schema/urls.schema.js";
 import dayjs from "dayjs";
 

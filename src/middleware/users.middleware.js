@@ -4,21 +4,20 @@ import { stripHtml } from "string-strip-html";
 
 export async function validSchemaSignup(req, res, next) {
   const user = req.body;
-  
+
   const { error } = signupSchema.validate(user);
-  
+
   if (error) {
     const errors = error.details.map((detail) => detail.message);
     return res.status(400).send({ errors });
   }
 
   const userSanitized = {
-    name: stripHtml(user.name).result.trim() ,
+    name: stripHtml(user.name).result.trim(),
     email: stripHtml(user.email).result.trim(),
     password: stripHtml(user.password).result,
     confirmPassword: stripHtml(user.confirmPassword).result,
   };
-
 
   const emailExists = await db.query("SELECT * FROM users WHERE email=$1", [
     userSanitized.email,
