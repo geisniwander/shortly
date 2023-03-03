@@ -8,8 +8,8 @@ import { authValidation } from "../middleware/auth.middleware.js";
 
 const userRouter = Router();
 
-userRouter.post("/sign-up", validSchemaSignup, signUp);
-userRouter.post("/sign-in", validSchemaSignin, signIn);
+userRouter.post("/signup", validSchemaSignup, signUp);
+userRouter.post("/signin", validSchemaSignin, signIn);
 userRouter.get("/ranking", ranking);
 userRouter.get("/users/me", authValidation,userMe);
 
