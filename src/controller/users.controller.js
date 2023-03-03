@@ -61,3 +61,26 @@ export async function signIn(req, res) {
     res.status(500).send(error.message);
   }
 }
+
+export async function ranking(req, res) {
+
+  try {
+
+    const result = await db.query(`SELECT users.id, users.name, COUNT(DISTINCT urls.id) AS "linksCount", 
+    SUM(urls."visitCount") AS "visitCount" 
+    FROM users 
+    JOIN urls
+      ON urls."userId"=users.id
+    GROUP BY users.id
+    ORDER BY "visitCount" DESC
+    LIMIT 10;
+    `
+    );
+
+    if (result.rowCount === 0) return res.sendStatus(404);
+
+    res.status(201).send(result.rows);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+}
