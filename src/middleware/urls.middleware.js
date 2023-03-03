@@ -1,10 +1,8 @@
-import { db } from "../config/database.js";
 import { urlSchema } from "../schema/urls.schema.js";
-import dayjs from "dayjs";
 
 export async function validSchemaUrl(req, res, next) {
-  const { sessionExists, url } = res.locals.data;
-
+  const url = req.body;
+  const { sessionExists } = res.locals.data;
   const { error } = urlSchema.validate(url);
 
   if (error) {
@@ -12,15 +10,7 @@ export async function validSchemaUrl(req, res, next) {
     return res.status(400).send({ errors });
   }
 
-  const { authorization } = req.headers;
-  const token = authorization?.replace("Bearer ", "");
-
-  const date = dayjs().format("YYYY-MM-DD");
-
-  const userId = await db.query(
-    'SELECT "userId" FROM sessions WHERE token=$1 AND "expireAt" < $2',
-    [token, date]
-  );
+  const userId = sessionExists.rows[0].userId;
 
   if (!userId) {
     return res.sendStatus(401);
