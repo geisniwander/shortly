@@ -45,6 +45,8 @@ export async function signIn(req, res) {
     if (!checkPassword)
       return res.status(400).send("Usuário ou senha incorretos");
 
+    await db.query(`DELETE FROM sessions WHERE "userId" = $1`, [userExists.id]);
+
     const token = uuidV4();
     const expireAt = dayjs().add(7, "day").format("YYYY-MM-DD");
 
@@ -63,10 +65,9 @@ export async function signIn(req, res) {
 }
 
 export async function ranking(req, res) {
-
   try {
-
-    const result = await db.query(`SELECT users.id, users.name, COUNT(DISTINCT urls.id) AS "linksCount", 
+    const result =
+      await db.query(`SELECT users.id, users.name, COUNT(DISTINCT urls.id) AS "linksCount", 
     SUM(urls."visitCount") AS "visitCount" 
     FROM users 
     JOIN urls
@@ -74,12 +75,48 @@ export async function ranking(req, res) {
     GROUP BY users.id
     ORDER BY "visitCount" DESC
     LIMIT 10;
-    `
-    );
+    `);
 
     if (result.rowCount === 0) return res.sendStatus(404);
 
     res.status(201).send(result.rows);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+}
+
+export async function userMe(req, res) {
+  const { sessionExists } = res.locals.data;
+  const userId = sessionExists.rows[0].userId;
+
+  try {
+    console.log(userId);
+    const result = await db.query(
+      `
+    SELECT json_build_object(
+      'id', users.id,
+      'name', users.name,
+      'visitCount', SUM(urls."visitCount"),
+      'shortenedUrls', json_agg(
+        json_build_object(
+          'id', urls.id,
+          'shortUrl', urls."shortUrl",
+          'url', urls.url,
+          'visitCount', urls."visitCount"
+        )
+      )
+    )
+    FROM users
+    JOIN urls ON urls."userId" = users.id
+    WHERE users.id = $1
+    GROUP BY users.id;
+  `,
+      [userId]
+    );
+
+    if (result.rowCount === 0) return res.sendStatus(404);
+
+    res.status(201).send(result.rows[0].json_build_object);
   } catch (error) {
     res.status(500).send(error.message);
   }
