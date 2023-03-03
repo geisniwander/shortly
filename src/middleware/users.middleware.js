@@ -9,7 +9,7 @@ export async function validSchemaSignup(req, res, next) {
 
   if (error) {
     const errors = error.details.map((detail) => detail.message);
-    return res.status(400).send({ errors });
+    return res.status(422).send({ errors });
   }
 
   const userSanitized = {
@@ -39,7 +39,7 @@ export async function validSchemaSignin(req, res, next) {
 
   if (error) {
     const errors = error.details.map((detail) => detail.message);
-    return res.status(400).send({ errors });
+    return res.status(422).send({ errors });
   }
 
   const userSanitized = {

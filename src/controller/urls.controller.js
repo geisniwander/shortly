@@ -36,7 +36,7 @@ export async function getUrlById(req, res) {
 
     if (result.rowCount === 0) return res.sendStatus(404);
 
-    res.status(201).send(result.rows[0].json_build_object);
+    res.status(200).send(result.rows[0].json_build_object);
   } catch (error) {
     res.status(500).send(error.message);
   }

@@ -7,7 +7,7 @@ export async function validSchemaUrl(req, res, next) {
 
   if (error) {
     const errors = error.details.map((detail) => detail.message);
-    return res.status(400).send({ errors });
+    return res.status(422).send({ errors });
   }
 
   const userId = sessionExists.rows[0].userId;
