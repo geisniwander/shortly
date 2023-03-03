@@ -43,8 +43,24 @@ export async function getUrlById(req, res) {
 }
 
 export async function openUrl(req, res) {
+  const { shortUrl } = req.params;
+
   try {
-    res.status(201).send("Url encontrada com sucesso!");
+    const urlExists = await db.query(
+      `SELECT * FROM urls WHERE "shortUrl" = $1`,
+      [shortUrl]
+    );
+
+    if (urlExists.rowCount === 0) return res.sendStatus(404);
+
+    await db.query(
+      `UPDATE urls SET "visitCount" = "visitCount" + 1 WHERE "shortUrl" = $1`,
+      [shortUrl]
+    );
+
+    const originalUrl = urlExists.rows[0].url;
+
+    res.redirect(originalUrl);
   } catch (error) {
     res.status(500).send(error.message);
   }
