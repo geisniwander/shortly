@@ -9,7 +9,7 @@ export async function postUrl(req, res) {
   try {
     const result = await db.query(
       `INSERT INTO urls (url, "shortUrl", "visitCount", "userId") VALUES ($1, $2, $3, $4) RETURNING id`,
-      [url, shortUrl, 0, userId]
+      [url.url, shortUrl, 0, userId]
     );
 
     const urlId = result.rows[0].id;
@@ -21,8 +21,22 @@ export async function postUrl(req, res) {
 }
 
 export async function getUrlById(req, res) {
+  const { id } = req.params;
+
   try {
-    res.status(201).send("Url encontrada com sucesso!");
+    const result = await db.query(
+      `SELECT json_build_object(
+        'id', urls.id,
+        'shortUrl', urls."shortUrl",
+        'url', urls.url
+      )
+      FROM urls WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rowCount === 0) return res.sendStatus(404);
+
+    res.status(201).send(result.rows[0].json_build_object);
   } catch (error) {
     res.status(500).send(error.message);
   }
