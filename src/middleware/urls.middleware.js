@@ -3,7 +3,7 @@ import { urlSchema } from "../schema/urls.schema.js";
 import dayjs from "dayjs";
 
 export async function validSchemaUrl(req, res, next) {
-  const { url } = req.body;
+  const { sessionExists, url } = res.locals.data;
 
   const { error } = urlSchema.validate(url);
 

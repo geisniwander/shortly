@@ -1,4 +1,7 @@
 export async function postUrl(req, res) {
+  const { url } = req.body;
+ 
+
   try {
     res.status(201).send("Url encurtada com sucesso!");
   } catch (error) {
