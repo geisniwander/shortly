@@ -1,16 +1,12 @@
 import { db } from "../config/database.js";
 import { signinSchema, signupSchema } from "../schema/users.schema.js";
 import { stripHtml } from "string-strip-html";
+import { validateSchema } from "./validate.middleware.js";
 
 export async function validSchemaSignup(req, res, next) {
   const user = req.body;
 
-  const { error } = signupSchema.validate(user);
-
-  if (error) {
-    const errors = error.details.map((detail) => detail.message);
-    return res.status(422).send({ errors });
-  }
+  await validateSchema(signupSchema, user)(req,res);
 
   const userSanitized = {
     name: stripHtml(user.name).result.trim(),
@@ -29,18 +25,13 @@ export async function validSchemaSignup(req, res, next) {
 
   res.locals.user = { ...userSanitized };
 
-  next();
+  return next();
 }
 
 export async function validSchemaSignin(req, res, next) {
   const user = req.body;
-
-  const { error } = signinSchema.validate(user);
-
-  if (error) {
-    const errors = error.details.map((detail) => detail.message);
-    return res.status(422).send({ errors });
-  }
+  
+  await validateSchema(signinSchema, user)(req,res);
 
   const userSanitized = {
     email: stripHtml(user.email).result.trim(),
