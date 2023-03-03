@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { v4 as uuidV4 } from "uuid";
-import db from "../config/database.js";
+import {db} from "../config/database.js";
 import dayjs from "dayjs";
 
 export async function signUp(req, res) {
@@ -27,16 +27,17 @@ export async function signIn(req, res) {
   const { email, password } = res.locals.user;
 
   try {
-    const userExists = await await db.query(
+   
+    const userExists = await db.query(
       `
       SELECT * FROM users WHERE email = $1 ;
       `,
       [email]
     );
+ 
+    if (userExists.rowCount === 0) return res.status(400).send("Usuário ou senha incorretos");
 
-    if (!userExists) return res.status(400).send("Usuário ou senha incorretos");
-
-    const checkPassword = bcrypt.compareSync(password, userExists.password);
+    const checkPassword = bcrypt.compareSync(password, userExists.rows[0].password);
 
     if (!checkPassword)
       return res.status(400).send("Usuário ou senha incorretos");
@@ -49,7 +50,7 @@ export async function signIn(req, res) {
       INSERT INTO sessions ("userId", token, "expireAt") 
       VALUES ($1, $2, $3);
       `,
-      [userExists.id, token, expireAt]
+      [userExists.rows[0].id, token, expireAt]
     );
 
     return res.status(200).send({ token });

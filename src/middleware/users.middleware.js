@@ -1,22 +1,24 @@
-import { db } from "../configs/database.js";
+import { db } from "../config/database.js";
 import { signinSchema, signupSchema } from "../schema/users.schema.js";
+import { stripHtml } from "string-strip-html";
 
 export async function validSchemaSignup(req, res, next) {
-  const { name, email, password, confirmPassword } = req.body;
-
-  const userSanitized = {
-    name: stripHtml(name).result.trim(),
-    email: stripHtml(email).result.trim(),
-    password: stripHtml(password).result,
-    confirmPassword: stripHtml(confirmPassword).result,
-  };
-
-  const { error } = signupSchema.validate(userSanitized);
-
+  const user = req.body;
+  
+  const { error } = signupSchema.validate(user);
+  
   if (error) {
     const errors = error.details.map((detail) => detail.message);
     return res.status(400).send({ errors });
   }
+
+  const userSanitized = {
+    name: stripHtml(user.name).result.trim() ,
+    email: stripHtml(user.email).result.trim(),
+    password: stripHtml(user.password).result,
+    confirmPassword: stripHtml(user.confirmPassword).result,
+  };
+
 
   const emailExists = await db.query("SELECT * FROM users WHERE email=$1", [
     userSanitized.email,
@@ -32,19 +34,19 @@ export async function validSchemaSignup(req, res, next) {
 }
 
 export async function validSchemaSignin(req, res, next) {
-  const { email, password } = req.body;
+  const user = req.body;
 
-  const userSanitized = {
-    email: stripHtml(email).result.trim(),
-    password: stripHtml(password).result,
-  };
-
-  const { error } = signinSchema.validate(userSanitized);
+  const { error } = signinSchema.validate(user);
 
   if (error) {
     const errors = error.details.map((detail) => detail.message);
     return res.status(400).send({ errors });
   }
+
+  const userSanitized = {
+    email: stripHtml(user.email).result.trim(),
+    password: stripHtml(user.password).result,
+  };
 
   res.locals.user = { ...userSanitized };
 
