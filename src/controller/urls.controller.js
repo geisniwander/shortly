@@ -51,8 +51,23 @@ export async function openUrl(req, res) {
 }
 
 export async function deleteUrlById(req, res) {
+  const { sessionExists } = res.locals.data;
+  const userId = sessionExists.rows[0].userId;
+  const { id } = req.params;
+
   try {
-    res.status(201).send("Url excluída com sucesso!");
+    const urlExists = await db.query(`SELECT * FROM urls WHERE id = $1`, [id]);
+
+    if (urlExists.rowCount === 0) return res.sendStatus(404);
+
+    const result = await db.query(
+      `DELETE FROM urls WHERE id = $1 AND "userId" = $2`,
+      [id, userId]
+    );
+
+    if (result.rowCount === 0) return res.sendStatus(401);
+
+    res.status(204).send("Url excluída com sucesso!");
   } catch (error) {
     res.status(500).send(error.message);
   }
