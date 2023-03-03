@@ -1,9 +1,11 @@
 import { nanoid } from "nanoid";
 import {
-  DeleteUrlByIdRepository,
+  deleteUrlByIdRepository,
   getUrlByIdRepository,
+  openUrlRepository,
   postUrlRepository,
-  UrlExistsRepository,
+  urlExistsByIdRepository,
+  urlExistsRepository,
 } from "../repositories/urls.repository.js";
 
 export async function postUrl(req, res) {
@@ -41,11 +43,11 @@ export async function openUrl(req, res) {
   const { shortUrl } = req.params;
 
   try {
-    const urlExists = await UrlExistsRepository(shortUrl);
+    const urlExists = await urlExistsRepository(shortUrl);
 
     if (urlExists.rowCount === 0) return res.sendStatus(404);
 
-    await openUrl(shortUrl);
+    await openUrlRepository(shortUrl);
 
     const originalUrl = urlExists.rows[0].url;
 
@@ -61,11 +63,11 @@ export async function deleteUrlById(req, res) {
   const { id } = req.params;
 
   try {
-    const urlExists = await UrlExistsRepository(id);
+    const urlExists = await urlExistsByIdRepository(id);
 
     if (urlExists.rowCount === 0) return res.sendStatus(404);
 
-    const result = await DeleteUrlByIdRepository(id, userId);
+    const result = await deleteUrlByIdRepository(id, userId);
 
     if (result.rowCount === 0) return res.sendStatus(401);
 
