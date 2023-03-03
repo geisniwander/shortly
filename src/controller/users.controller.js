@@ -35,7 +35,7 @@ export async function signIn(req, res) {
     );
 
     if (userExists.rowCount === 0)
-      return res.status(400).send("Usuário ou senha incorretos");
+      return res.status(401).send("Usuário ou senha incorretos");
 
     const checkPassword = bcrypt.compareSync(
       password,
@@ -43,7 +43,7 @@ export async function signIn(req, res) {
     );
 
     if (!checkPassword)
-      return res.status(400).send("Usuário ou senha incorretos");
+      return res.status(401).send("Usuário ou senha incorretos");
 
     await db.query(`DELETE FROM sessions WHERE "userId" = $1`, [userExists.id]);
 
