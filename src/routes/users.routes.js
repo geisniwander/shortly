@@ -1,4 +1,9 @@
-import { ranking, signIn, signUp, userMe } from "../controller/users.controller.js";
+import {
+  ranking,
+  signIn,
+  signUp,
+  userMe,
+} from "../controller/users.controller.js";
 import { Router } from "express";
 import {
   validSchemaSignin,
@@ -11,8 +16,6 @@ const userRouter = Router();
 userRouter.post("/signup", validSchemaSignup, signUp);
 userRouter.post("/signin", validSchemaSignin, signIn);
 userRouter.get("/ranking", ranking);
-userRouter.get("/users/me", authValidation,userMe);
-
-
+userRouter.get("/users/me", authValidation, userMe);
 
 export default userRouter;

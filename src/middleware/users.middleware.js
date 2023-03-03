@@ -49,5 +49,5 @@ export async function validSchemaSignin(req, res, next) {
 
   res.locals.user = { ...userSanitized };
 
-  next();
+  return next();
 }

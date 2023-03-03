@@ -14,7 +14,6 @@ export async function postUrl(req, res) {
   const shortUrl = nanoid(7);
 
   try {
-
     const result = await postUrlRepository(urlString, shortUrl, userId);
 
     const urlId = result.rows[0].id;

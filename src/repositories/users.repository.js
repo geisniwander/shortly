@@ -29,6 +29,8 @@ export async function signInRepository(userId, token, expireAt) {
         `,
     [userId, token, expireAt]
   );
+
+  return;
 }
 
 export async function rankingRepository() {

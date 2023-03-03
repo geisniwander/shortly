@@ -20,22 +20,22 @@ export async function getUrlByIdRepository(id) {
 }
 
 export async function urlExistsRepository(shortUrl) {
-  return await db.query(`SELECT * FROM urls WHERE "shortUrl" = $1`, [shortUrl]);
+  return db.query(`SELECT * FROM urls WHERE "shortUrl" = $1`, [shortUrl]);
 }
 
 export async function urlExistsByIdRepository(id) {
-  return await db.query(`SELECT * FROM urls WHERE id = $1`, [id]);
+  return db.query(`SELECT * FROM urls WHERE id = $1`, [id]);
 }
 
 export async function openUrlRepository(shortUrl) {
-  await db.query(
+  return db.query(
     `UPDATE urls SET "visitCount" = "visitCount" + 1 WHERE "shortUrl" = $1`,
     [shortUrl]
   );
 }
 
 export async function deleteUrlByIdRepository(id, userId) {
-  return await db.query(`DELETE FROM urls WHERE id = $1 AND "userId" = $2`, [
+  return db.query(`DELETE FROM urls WHERE id = $1 AND "userId" = $2`, [
     id,
     userId,
   ]);

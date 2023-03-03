@@ -1,30 +1,32 @@
-import {db} from "../config/database.js";
+import { db } from "../config/database.js";
 import dayjs from "dayjs";
 
 export async function authValidation(req, res, next) {
   const { authorization } = req.headers;
   const token = authorization?.replace("Bearer ", "");
   if (!token) return res.status(422).send("Informe o token!");
-    
+
   const date = dayjs().format("YYYY-MM-DD");
-  
+
   try {
     const sessionExists = await db.query(
-        `
+      `
         SELECT * FROM sessions WHERE token = $1 AND "expireAt" > $2;
         `,
-        [token, date]
-      );
+      [token, date]
+    );
 
     if (sessionExists.rowCount === 0)
       return res
         .status(401)
-        .send("Você não tem autorização para acessar este recurso ou sua sessão expirou, faça login novamente!");
+        .send(
+          "Você não tem autorização para acessar este recurso ou sua sessão expirou, faça login novamente!"
+        );
 
-    res.locals.data = {sessionExists};
+    res.locals.data = { sessionExists };
 
-    next();
+    return next();
   } catch (error) {
-    res.status(500).send(error);
+    return res.status(500).send(error);
   }
 }

@@ -18,5 +18,5 @@ export async function validSchemaUrl(req, res, next) {
 
   res.locals.originalUrl = { url, userId };
 
-  next();
+  return next();
 }
