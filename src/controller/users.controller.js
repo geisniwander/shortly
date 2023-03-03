@@ -1,0 +1,59 @@
+import bcrypt from "bcrypt";
+import { v4 as uuidV4 } from "uuid";
+import db from "../config/database.js";
+import dayjs from "dayjs";
+
+export async function signUp(req, res) {
+  const { name, email, password } = res.locals.user;
+
+  const passwordHashed = bcrypt.hashSync(password, 10);
+
+  try {
+    await db.query(
+      `
+    INSERT INTO users (name, email, password) 
+    VALUES ($1, $2, $3);
+    `,
+      [name, email, passwordHashed]
+    );
+
+    res.status(201).send("Usuário cadastrado com sucesso!");
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+}
+
+export async function signIn(req, res) {
+  const { email, password } = req.body;
+
+  try {
+    const userExists = await await db.query(
+      `
+      SELECT * FROM users WHERE email = $1 ;
+      `,
+      [email]
+    );
+
+    if (!userExists) return res.status(400).send("Usuário ou senha incorretos");
+
+    const checkPassword = bcrypt.compareSync(password, userExists.password);
+
+    if (!checkPassword)
+      return res.status(400).send("Usuário ou senha incorretos");
+
+    const token = uuidV4();
+    const expireAt = dayjs().add(7, "day").format("YYYY-MM-DD");
+
+    await db.query(
+      `
+      INSERT INTO sessions ("userId", token, "expireAt") 
+      VALUES ($1, $2, $3);
+      `,
+      [userExists.id, token, expireAt]
+    );
+
+    return res.status(200).send({ token });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+}

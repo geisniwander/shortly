@@ -2,9 +2,16 @@ import { db } from "../configs/database.js";
 import { userSchema } from "../schema/users.schema.js";
 
 export async function validSchemaUser(req, res, next) {
-  const user = req.body;
+  const {name, email, password, confirmPassword} = req.body;
+  
+  const userSanitized = {
+    name: stripHtml(name).result.trim(),
+    email: stripHtml(email).result.trim(),
+    password: stripHtml(password).result,
+    confirmPassword: stripHtml(confirmPassword).result,
+  };
 
-  const { error } = userSchema.validate(user);
+  const { error } = userSchema.validate(userSanitized);
 
   if (error) {
     const errors = error.details.map((detail) => detail.message);
@@ -12,14 +19,14 @@ export async function validSchemaUser(req, res, next) {
   }
 
   const emailExists = await db.query("SELECT * FROM users WHERE email=$1", [
-    user.email,
+    userSanitized.email,
   ]);
 
   if (emailExists.rowCount !== 0) {
-    return res.sendStatus(409);
+    return res.status(409).send("Este email já está em uso!");
   }
 
-  res.locals.user = { ...user };
+  res.locals.user = { ...userSanitized };
 
   next();
 }
